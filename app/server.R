@@ -8,8 +8,6 @@ server <- function(input, output, session) {
   values <- reactiveValues()                            # miscellaneous storage (e.g. project_data)
   analysis_storage <- reactiveVal(list())               # saved analysis results
   dashboard_items <- reactiveVal(list())                # dashboard box configurations
-  dashboard_containers_list <- reactiveVal(list())
-  dashboard_container_counter <- reactiveVal(0)
   
   
   # 1. Home----
@@ -1100,35 +1098,24 @@ server <- function(input, output, session) {
   
   ## 4.2 project info ----
   
-  # - title -
-  output$proj_title <- renderText({
-    if (!is.null(values$project_data)) {
-      return(values$project_data$name)
-      }
-    if (is.null(input$project_name) || input$project_name == "") {
-      return("(none)")
-      }
-    input$project_name
+    # - title -
+    output$proj_title <- renderText({
+      req(values$project_data)
+      values$project_data$name
     })
     
-  # - client -
-  output$proj_client <- renderText({
-    if (!is.null(values$project_data)) {
-      return(values$project_data$client)
-      }
-    if (is.null(input$client_name) || input$client_name == "") {
-      return("(none)")
-      }
-    input$client_name
+    # - client -
+    output$proj_client <- renderText({
+      req(values$project_data)
+      values$project_data$client
+    })
+    
+    # - date -
+    output$proj_date <- renderText({
+      req(values$project_data)
+      as.character(values$project_data$date)
     })
   
-  # - date - 
-  output$proj_date <- renderText({
-    if (!is.null(values$project_data)) {
-      return(as.character(values$project_data$date))
-      }
-    format(Sys.Date(), "%Y-%m-%d")
-    })
   
   
   ##  4.3 placeholder configuration ----
@@ -1168,32 +1155,30 @@ server <- function(input, output, session) {
         
         # 2) select display
         # just if its not a method with graph
+        # Only allow View as: Table or Plot IF method is Frequency
         conditionalPanel(
           condition = sprintf(
-            "!(/^Histogram|Boxplot|Bivariate Scatter/.test($('#select_analysis_%s option:selected').text()))",
+            '["Frequency"].includes(
+            $("#select_analysis_%s option:selected").text().split(" – ")[0]
+            )',
             box_id
-          ),
+            ),
           radioButtons(
             inputId = paste0("view_mode_", box_id),
             label   = "View as:",
-            choices = c("Table","Plot"),
+            choices = c("Table", "Plot"),
             selected = "Table"
           )
         ),
-        
         conditionalPanel(
           condition = sprintf(
-            "input.view_mode_%1$s=='Plot' && !(/^Histogram|Boxplot|Bivariate Scatter/.test($('#select_analysis_%1$s option:selected').text()))",
+            '["Mean", "Median", "Standard Deviation", "Contingency Table", "Missing Summary"].includes(
+            $("#select_analysis_%s option:selected").text().split(" – ")[0]
+            )',
             box_id
           ),
-          selectInput(
-            inputId = paste0("chart_type_", box_id),
-            label   = "Chart type:",
-            choices = c("Bar","Pie","Line"),
-            selected = "Bar"
-          )
-        ),
-        
+          tags$p("This analysis is only available as a table.")
+        ), 
         
         footer = tagList(
           modalButton("Cancel"),
@@ -1216,7 +1201,7 @@ server <- function(input, output, session) {
   observeEvent(input$add_4, { openModalForPlaceholder("4") })
   
   
-  # ## 4.4 insert analysis ----
+  ## 4.4 insert analysis ----
   lapply(1:4, function(i) {
     observeEvent(input[[paste0("confirm_box_", i)]], {
       removeModal()
@@ -1228,12 +1213,15 @@ server <- function(input, output, session) {
       # look at analysis method
       method_i <- analysis_storage()[[sel_idx]]$method
       
-      # if its a graph method, we forced it
+      # if its a graph method, we forced it (same with table)
       if (method_i %in% c("Histogram", "Boxplot", "Bivariate Scatter")) {
         mode   <- "Plot"
         c_type <- NULL
+      } else if (method_i %in% c("Mean", "Median", "Standard Deviation", "Contingency Table", 
+                                 "Missing Summary")) {
+        mode   <- "Table"
+        c_type <- NULL
       } else {
-        # rest cases
         mode   <- if (!is.null(input[[vm_id]])) input[[vm_id]] else "Table"
         c_type <- if (mode == "Plot" && !is.null(input[[ct_id]])) input[[ct_id]] else NULL
       }
@@ -1256,30 +1244,29 @@ server <- function(input, output, session) {
           datatable(dat, options = list(pageLength = 10, scrollX = TRUE), rownames = FALSE)
         })
       } else {
-        output[[paste0("out_", box_id)]] <- renderPlot({
-          fresh <- analysis_storage()[[sel_idx]]
-          # if ggplot, print it
-          if (!is.null(fresh$plot)) {
-            print(fresh$plot)
-            return()
-          }
-          vals <- fresh$result
-          labs <- if (fresh$method == "Frequency") fresh$result$Value else names(vals)
-          if (c_type == "Bar") {
-            barplot(vals, names.arg = labs, las = 2, main = fresh$label)
-          } else if (c_type == "Pie") {
-            pie(vals, labels = labs, main = fresh$label)
-          } else {
-            plot(vals, type = "o", xaxt = "n", ylab = fresh$method, main = fresh$label)
-            axis(1, at = seq_along(vals), labels = labs, las = 2)
-          }
+        local({
+          this_item <- itm
+          this_id <- paste0("out_", box_id)
+          
+          output[[this_id]] <- renderPlot({
+            fresh <- analysis_storage()[[this_item$source_idx]]
+            
+            # if ggplot
+            if (!is.null(fresh$plot)) {
+              print(fresh$plot)
+              return()
+            }
+
+            plot.new()
+            title("No plot available for this analysis")
+          })
         })
       }
       
       shinyjs::hide(selector = paste0("#ph_", i))
     }, ignoreInit = TRUE)
   })
-  
+
   
   ## 4.5 rebuild dashboard_items ----
   observeEvent(dashboard_items(), {
@@ -1368,19 +1355,20 @@ server <- function(input, output, session) {
             
             if (item$chart_type == "Bar") {
               if (anal$method == "Frequency") {
-              barplot(
-                anal$result$Frequency,
-                names.arg = anal$result$Value,
-                main      = etiqueta,
-                las       = 2
+                barplot(
+                  anal$result$Frequency,
+                  names.arg = anal$result$Value,
+                  main      = etiqueta,
+                  las       = 2
                 )
               } else {
                 barplot(
                   anal$result,
                   names.arg = anal$method,
-                  main      = etiqueta,
-                  )
-                }
+                  main      = etiqueta
+                )
+              }
+              
             } else if (item$chart_type == "Pie") {
               if (anal$method == "Frequency") {
                 pie(
@@ -1388,36 +1376,17 @@ server <- function(input, output, session) {
                   labels = anal$result$Value,
                   main   = etiqueta,
                   col    = rainbow(nrow(anal$result))
-                  )
-                } else {
-                  pie(
-                    anal$result,
-                    labels = anal$method,
-                    main   = etiqueta,
-                    col    = rainbow(1)
-                    )
-                  }
-              } else if (item$chart_type == "Line") {
-                if (anal$method == "Frequency") {
-                  plot(
-                    anal$result$Frequency,
-                    type = "o",
-                    xaxt = "n",
-                    ylab = "Frequency",
-                    main = etiqueta,
-                    )
-                  axis(1, at = seq_len(nrow(anal$result)), labels = anal$result$Value, las = 2)
-                  } else {
-                    plot(
-                      anal$result,
-                      type = "o",
-                      main = etiqueta,
-                      ylab = anal$method,
-                      )
-                    axis(1, at = 1, labels = anal$method)
-                  }
+                )
+              } else {
+                pie(
+                  anal$result,
+                  labels = anal$method,
+                  main   = etiqueta,
+                  col    = rainbow(1)
+                )
               }
             }
+          }
           
           ## finish writing the PNG
           dev.off()
@@ -1466,6 +1435,11 @@ server <- function(input, output, session) {
         ))
       return()  # abort if nothing to save
       }
+    
+    # call save_project to re-write what needed
+    values$project_data$name <- input$project_name
+    values$project_data$client <- input$client_name
+    values$project_data$dashboard_items <- dashboard_items()
     
     # call save_project to re-write what needed
     save_project(

@@ -32,17 +32,30 @@ ui <- dashboardPage(
     
     ## Custom CSS ----
     tags$head(tags$style(HTML("
+      
       /* ===========================
-         Base styles
-         =========================== */
-      body, .box { font-family: 'Helvetica Neue', Arial, sans-serif; }
-      .content-wrapper, .right-side { background-color: #FAFAFA; }
-      .main-header .navbar { background-color: #FFFFFF; border-bottom: 1px solid #DDDDDD; }
-      .main-header .logo { background-color: #FFFFFF; color: #333333; font-weight: bold; }
-
+       Base styles
+      =========================== */
+      body, .box {
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+      }
+      .content-wrapper,
+      .right-side {
+        background-color: #FAFAFA;
+      }
+      .main-header .navbar {
+        background-color: #FFFFFF;
+        border-bottom: 1px solid #DDDDDD;
+      }
+      .main-header .logo {
+        background-color: #FFFFFF;
+        color: #333333;
+        font-weight: bold;
+      }
+      
       /* ===========================
-         Sidebar (más claro)
-         =========================== */
+         Sidebar
+      =========================== */
       .main-sidebar {
         background-color: #EFEFEF !important;
       }
@@ -53,10 +66,10 @@ ui <- dashboardPage(
         background-color: #1F77B4 !important;
         color: #FFFFFF !important;
       }
-
+      
       /* ===========================
          Box styling
-         =========================== */
+      =========================== */
       .box {
         border-top-color: #94B4C1;
         box-shadow: none;
@@ -65,14 +78,13 @@ ui <- dashboardPage(
         background-color: #FFFFFF;
         border-bottom: 1px solid #DDDDDD;
       }
-      /* Títulos de las cajas en blanco */
       .box-primary .box-title {
         color: #FFFFFF !important;
       }
-
+      
       /* ===========================
          Buttons
-         =========================== */
+      =========================== */
       .btn {
         border-radius: 4px;
         font-weight: 500;
@@ -85,129 +97,112 @@ ui <- dashboardPage(
         background-color: #C17A3C;
       }
       
-      /* Empuja el contenedor hacia abajo */
       #main_buttons {
         display: flex !important;
         justify-content: center;
         gap: 40px;
-        margin: 80px 0 20px 0 !important;  /* más espacio arriba */
+        margin: 80px 0 20px 0 !important;
       }
-      /* Agranda New y Previous */
-      #button1, #button2 {
+      #button1,
+      #button2 {
         font-size: 18px !important;
         padding: 15px 40px !important;
         width: 220px !important;
         height: 60px !important;
       }
       
-      /* Hacer el botón Save Analysis verde */
-        #save_analysis {
-          background-color: #A59E5D !important;
-          border-color:     #A59E5D !important;
-          color:            #FFFFFF !important;
-        }
-        /* Hover ligeramente más oscuro */
-        #save_analysis:hover {
-          background-color: #8A9452 !important;
-        }
-        
-        
-      /* Sólo los botones grises en Data Cleaning */  
-      .tabItem[data-value=\"data_cleaning\"] .btn-default {
-      font-size: 12px !important;
-      padding: 5px 10px !important;
+      #save_analysis {
+        background-color: #A59E5D !important;
+        border-color: #A59E5D !important;
+        color: #FFFFFF !important;
       }
-    
-    
-    #formContainer {
-        display: none;               /* arrancará oculto */
-        position: absolute;          /* fuera del flujo normal */
-        top: 70px;                   /* justo debajo del header */
-        left: 50%;                   /* centrado horizontalmente */
+      #save_analysis:hover {
+        background-color: #8A9452 !important;
+      }
+      
+      /* ===========================
+         Data Cleaning buttons
+      =========================== */
+      .tabItem[data-value='data_cleaning'] .btn-default {
+        font-size: 12px !important;
+        padding: 5px 10px !important;
+      }
+      
+      .tabItem[data-value='data_cleaning'] .data-clean-btns .btn {
+        border-radius: 4px !important;
+        border: 1px solid #ccc !important;
+        background-color: #f7f9fc !important;
+        color: #333 !important;
+        text-align: left !important;
+        padding: 8px 12px !important;
+        margin-bottom: 6px !important;
+        font-size: 13px !important;
+      }
+      .tabItem[data-value='data_cleaning'] .data-clean-btns .btn:hover {
+        background-color: #e6efff !important;
+      }
+      .tabItem[data-value='data_cleaning'] .data-clean-btns .btn .fa {
+        margin-right: 8px;
+      }
+      .tabItem[data-value='data_cleaning'] .data-clean-btns #undo_edit {
+        background-color: #003247 !important;
+        border-color: #003247 !important;
+        color: #FFFFFF !important;
+      }
+      .tabItem[data-value='data_cleaning'] .data-clean-btns #undo_edit:hover {
+        background-color: #165a9c !important;
+      }
+      .tabItem[data-value='data_cleaning'] .data-clean-btns #save_edits {
+        margin-bottom: 20px !important;
+      }
+      
+      /* ===========================
+         Form Container
+      =========================== */
+      #formContainer {
+        display: none;
+        position: absolute;
+        top: 70px;
+        left: 50%;
         transform: translateX(-50%);
-        width: 600px;                /* el ancho que prefieras */
+        width: 600px;
         background: #FFFFFF;
         padding: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        z-index: 2000;               /* por encima de todo lo demás */
-    }
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        z-index: 2000;
+      }
+      #formContainer .box-header {
+        background-color: #1F77B4 !important;
+        color: #FFFFFF !important;
+      }
+      #formContainer .box {
+        border-top-color: #1F77B4 !important;
+      }
       
-      /* Le damos al header de este box el color #1F77B4 */
-    #formContainer .box-header {
-      background-color: #1F77B4 !important;
-      color: #FFFFFF !important;
-    }
-    /* Y al borde superior del box */
-    #formContainer .box {
-      border-top-color: #1F77B4 !important;
-    }
-    
-    #undo_edit {
-  float: right;
-  margin-bottom: 10px;
-    }
-  
-  /* ------------------------------
-   Botones DATA CLEANING (edit)
-   ------------------------------ */
-    .tabItem[data-value='data_cleaning'] .data-clean-btns .btn {
-      border-radius: 4px !important;
-      border: 1px solid #ccc !important;
-      background-color: #f7f9fc !important;
-      color: #333 !important;
-      text-align: left !important;
-      padding: 8px 12px !important;
-      margin-bottom: 6px !important;
-      font-size: 13px !important;
-    }
-    .tabItem[data-value='data_cleaning'] .data-clean-btns .btn:hover {
-      background-color: #e6efff !important;
-    }
-    .tabItem[data-value='data_cleaning'] .data-clean-btns .btn .fa {
-      margin-right: 8px;
-    }
-    
-    /* == Botón “Undo” en azul == */
-    .tabItem[data-value='data_cleaning'] .data-clean-btns #undo_edit {
-      background-color: #003247 !important;
-      border-color:     #003247 !important;
-      color:            #FFFFFF !important;
-    }
-    .tabItem[data-value='data_cleaning'] .data-clean-btns #undo_edit:hover {
-      background-color: #165a9c !important;
-    }
-    
-    /* == Espacio extra tras el último botón == */
-    .tabItem[data-value='data_cleaning'] .data-clean-btns #save_edits {
-      margin-bottom: 20px !important;
-    }
-
-
+      #undo_edit {
+        float: right;
+        margin-bottom: 10px;
+      }
+      
       /* ===========================
          Placeholders
-         =========================== */
+      =========================== */
       .placeholder-box {
         border: 2px dashed #CCCCCC;
         background-color: #FFFFFF;
+        min-height: 200px;
+        position: relative;
       }
       .placeholder-plus {
         color: #BBBBBB;
         font-weight: bold;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 32px;
       }
-      
-      /* Hacer los placeholders más altos */
-  .placeholder-box {
-    min-height: 200px;      /* o height fijo: 200px */
-    position: relative;     /* para centrar luego el '+' */
-  }
-  /* Centrar el '+' dentro del recuadro */
-  .placeholder-plus {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 32px;        /* ajusta al gusto */
-  }
+
     "))),
     
     

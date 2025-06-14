@@ -6,7 +6,7 @@
 rm(list = ls()) # Remove old variables
 
 packages = c("shiny", "shinyjs", "DT", "readxl", "dplyr", "haven", "officer", "flextable", 
-             "shinydashboard", "rhandsontable", "ggplot2", "tidyr", "lubridate", "rlang")
+             "shinydashboard", "rhandsontable", "ggplot2", "tidyr", "lubridate", "rlang", "dplyr")
 
 package.check <- lapply(packages,
                         FUN = function(x){
@@ -90,11 +90,11 @@ save_project <- function(dataset, selectedVariables, input, values, analysis_lis
   # 4. Bundle up everything we need to restore
   saveRDS(
     list(
-      name            = project_name,                       # project tittle
-      client          = input$client_name,                  # client's name
+      name            = isolate(input$project_name),        # project tittle
+      client          = isolate(input$client_name),         # client's name
       data            = dataset(),                          # active dataset
       variables       = selectedVariables(),                # selected variables
-      analyses       = analysis_list,                      # saved analysis list
+      analyses        = analysis_list,                      # saved analysis list
       dashboard_items = dashboard_items_reactive(),         # dashboard configuration
       date            = Sys.Date(),                         # current date
       file            = values$project_file_name            # original file name
@@ -187,18 +187,47 @@ perform_analysis <- function(dataset, analysis_method, var1, var2 = NULL) {
 
          ## 4.1 Univariate summary tables
          "Frequency" = {
-           tab <- table(df1)
+           req(!is.null(var1))
+           vec <- dataset[[var1]]
+           
+           tab <- table(vec)
            df_result <- data.frame(Value = names(tab), Frequency = as.vector(tab))
-           },
+           
+           plt <- ggplot(df_result, aes(x = reorder(Value, -Frequency), y = Frequency)) +
+             geom_bar(stat = "identity", fill = "steelblue", alpha = 0.85) +
+             labs(
+               title    = paste("Bar Plot of", var1),
+               subtitle = "Frequencies of observed values",
+               x        = var1,
+               y        = "Frequency"
+             ) +
+             theme_minimal(base_size = 14) +
+             theme(
+               plot.title       = element_text(face = "bold", size = 16, hjust = 0.5),
+               plot.subtitle    = element_text(size = 12, hjust = 0.5, color = "grey40"),
+               axis.title       = element_text(face = "bold"),
+               axis.text.x      = element_text(angle = 45, hjust = 1),
+               panel.grid.major = element_line(color = "grey90"),
+               panel.grid.minor = element_blank()
+             )
+           
+           list(
+             method   = "Frequency",
+             variable = var1,
+             result   = df_result,
+             plot     = plt
+           )
+         },
          
          "Mean" = {
            req(is.numeric(df1))
-           df_result <- data.frame(Statistic="Mean", Value=mean(df1, na.rm=TRUE))
+           df_result <- data.frame(Statistic = "Mean", Value = round(mean(df1, na.rm = TRUE), 2))
            },
          
          "Median" = {
            req(is.numeric(df1))
-           df_result <- data.frame(Statistic="Median", Value=median(df1, na.rm=TRUE))
+           df_result <- data.frame(Statistic = "Median", 
+                                   Value = round(median(df1, na.rm = TRUE), 2))
            },
          
          "Standard Deviation" = {
@@ -317,16 +346,21 @@ dashboard_box <- function(itm, anal_item) {
   
   # 1. Unique box identifier (used for output IDs)
   box_id <- itm$id
+  delete_btn_id <- paste0("delete_container_", box_id)
   
   # 2. Styling each box
-  ## title
-  title_tag <- span(style="font-weight:bold; font-size:16px;", anal_item$label)
+  title_tag <- div(
+    style = "display: flex; justify-content: space-between; align-items: center;",
+    
+    # title
+    span(style = "font-weight: bold; font-size: 16px;", anal_item$label)
+    )
   
-  ## view mode, depending on DTOutput (table) or plotOutput
-  inner_ui <- if (itm$view=="Table")
+  # body
+  inner_ui <- if (itm$view == "Table")
     DTOutput(paste0("out_", box_id))
   else
-    plotOutput(paste0("out_", box_id), height="300px")
+    plotOutput(paste0("out_", box_id), height = "300px")
   
   # 3. Wrap everything in a container so we can remove or hide it later by ID
   div(
@@ -334,12 +368,12 @@ dashboard_box <- function(itm, anal_item) {
     
     # shinydashboard::box container
     box(
-      id          = box_id, # box's HTML id
-      class       = "dynamic-box", # CSS class for further styling
-      title       = title_tag, # styled title
-      status      = "primary", # shinydashboard color theme
-      solidHeader = TRUE, # solid header background
-      width       = NULL, # auto width within its column
+      id = box_id,
+      class = "dynamic-box",
+      title = title_tag,
+      status = "primary",
+      solidHeader = TRUE,
+      width = NULL,
       
       # inner UI element (either a table or a plot)
       inner_ui
