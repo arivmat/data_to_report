@@ -1,5 +1,4 @@
 
-## 📚 Table of Contents
 
 - [🚀 At a Glance](#-at-a-glance)
 - [🧠 Project Overview](#-project-overview)
