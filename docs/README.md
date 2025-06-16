@@ -59,7 +59,7 @@ The Report Generator is composed of:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your_username/report-generator.git
+git clone https://github.com/arivmat/report_generator.git
 
 # Open the project in RStudio
 # Run the app
