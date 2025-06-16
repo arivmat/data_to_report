@@ -1,4 +1,5 @@
 
+
 # 📊 From Data to Report
 
 > Developed by *Andrea Rivera Mateos*
@@ -7,7 +8,7 @@
 ![Badge](https://img.shields.io/badge/HTML-grey?logo=html5&logoColor=gray&labelColor=white)
 ![Badge](https://img.shields.io/badge/CSS-blue?logo=css3&logoColor=white&labelColor=white)
 
-Welcome to **Report Generator**, an interactive R Shiny dashboard that helps you **upload**, **clean**, **analyze**, and **export** data — all without writing a single line of code.
+Welcome to **Data to Report (D2R)**, an interactive R Shiny dashboard that helps you **upload**, **clean**, **analyze**, and **export** data — all without writing a single line of code.
 
 ---
 
@@ -59,7 +60,7 @@ The Report Generator is composed of:
 
 ```bash
 # Clone the repository
-git clone https://github.com/arivmat/report_generator.git
+git clone https://github.com/arivmat/data_to_report.git
 
 # Open the project in RStudio
 # Run the app
@@ -68,7 +69,7 @@ shiny::runApp()
 ```
 
 
-## ✨ Features
+## ▶ Usage
 
 <details>
 <summary><strong> 🔍 Data Upload & Cleaning </strong></summary>
@@ -115,6 +116,23 @@ shiny::runApp()
 - Powered by [`officer`](https://davidgohel.github.io/officer/) and [`flextable`](https://davidgohel.github.io/flextable/)
 
 </details>
+
+
+## ✨ Features
+
+- Upload multiple file formats
+
+- Clean and edit data inline
+
+- Interactive analysis (univariate, bivariate, multivariate)
+
+- Custom dashboard building with drag-and-drop logic
+
+- Export dashboard results as a .pptx presentation
+
+- Smart UI with CSS enhancements
+
+- Restore entire project state with saved .rds files
 
 
 

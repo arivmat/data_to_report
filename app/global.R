@@ -1,4 +1,6 @@
 ## Andrea Rivera Mateos
+## Date: June 2025
+## Project: From Data to Report
 
 # Libraries ----
 

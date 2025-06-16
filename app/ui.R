@@ -1,10 +1,15 @@
 ## Andrea Rivera Mateos
+## Date: June 2025
+## Project: From Data to Report
 
 ui <- dashboardPage(
   
   # Header ----
   dashboardHeader(
-    title = "Report Generator",
+    title = tags$div(
+      HTML('<span style="font-size: 20px; font-weight: bold;">D2R</span>
+            <span style="font-size: 10px; margin-left: 5px; font-weight: normal;">v1.0</span>')
+    ),
     tags$li(
       class = "dropdown",
       style = "margin-right: 20px; margin-top: 8px;",
