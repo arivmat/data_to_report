@@ -1,5 +1,5 @@
 
-# 📊 Report Generator
+# 📊 From Data to Report
 
 > Developed by *Andrea Rivera Mateos*
 
