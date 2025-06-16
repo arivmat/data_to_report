@@ -68,7 +68,7 @@ shiny::runApp()
 ```
 
 
-## ▶ Usage
+## ✨ Features
 
 <details>
 <summary><strong> 🔍 Data Upload & Cleaning </strong></summary>
@@ -115,23 +115,6 @@ shiny::runApp()
 - Powered by [`officer`](https://davidgohel.github.io/officer/) and [`flextable`](https://davidgohel.github.io/flextable/)
 
 </details>
-
-
-## ✨ Features
-
-- Upload multiple file formats
-
-- Clean and edit data inline
-
-- Interactive analysis (univariate, bivariate, multivariate)
-
-- Custom dashboard building with drag-and-drop logic
-
-- Export dashboard results as a .pptx presentation
-
-- Smart UI with CSS enhancements
-
-- Restore entire project state with saved .rds files
 
 
 
