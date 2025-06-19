@@ -133,8 +133,7 @@ report-generator/
 
 ## 👩‍💻 Author
 
-Andrea Rivera Mateos
-Master in Computational Social Sciences (UC3M)
+Andrea Rivera Mateos | Master in Computational Social Sciences (UC3M)
 
 ## 🪪 Licence
 
