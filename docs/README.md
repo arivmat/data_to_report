@@ -127,12 +127,14 @@ report-generator/
 ├── app.R                 # main Shiny application
 ├── saved_projects/       # folder for storing .rds project files
 ├── docs                  # project documentation
+├── testing_data          # testing data files
 
 ```
 
 ## 👩‍💻 Author
 
 Andrea Rivera Mateos
+Master in Computational Social Sciences (UC3M)
 
 ## 🪪 Licence
 
