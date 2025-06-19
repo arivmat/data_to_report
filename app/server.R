@@ -270,6 +270,8 @@ server <- function(input, output, session) {
       output                    = output
     )
     
+    analysis_storage(refresh_all_analyses(dataset(), analysis_storage()))
+    
     ## success updated data
     showModal(modalDialog(
       title = "Success!",
@@ -1438,9 +1440,10 @@ server <- function(input, output, session) {
       return()  # abort if nothing to save
       }
     
-    # call save_project to re-write what needed
-    values$project_data$name <- input$project_name
+    values$project_data$name   <- input$project_name
     values$project_data$client <- input$client_name
+    values$project_data$date   <- Sys.Date()
+    values$project_data$data   <- dataset()
     values$project_data$dashboard_items <- dashboard_items()
     
     # call save_project to re-write what needed

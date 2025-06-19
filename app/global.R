@@ -340,7 +340,16 @@ perform_analysis <- function(dataset, analysis_method, var1, var2 = NULL) {
   
   }
 
+## Refresh analysis ----
 
+refresh_all_analyses <- function(current_dataset, analysis_list) {
+  lapply(analysis_list, function(anal) {
+    updated <- perform_analysis(current_dataset, anal$method, anal$variable, anal$variable2)
+    anal$result <- updated$result
+    anal$plot   <- updated$plot
+    anal  # conserva id, label, etc.
+  })
+}
 
 ## Dashboard box ---- 
 
