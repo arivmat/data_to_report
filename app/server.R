@@ -316,7 +316,7 @@ server <- function(input, output, session) {
   
   ## keep selected variables in sync with UI
   observeEvent(input$variables, {
-    selectedVariables(input$variables)
+    selectedVariables(intersect(input$variables, names(dataset())))
   })
   
 
@@ -434,16 +434,21 @@ server <- function(input, output, session) {
     req(dataset())
     full_df <- dataset()
     sel_vars <- selectedVariables()
-
-    if (length(sel_vars) == 0) {
-      editable_df(data.frame()) # empty if nothing selected
-      } else {
-      df_subset <- full_df[, sel_vars, drop = FALSE]
-      editable_df(df_subset)
-      }
     
-    edit_history$stack <- list() # clear undo history on reset
-    })
+    if (length(sel_vars) == 0) {
+      editable_df(data.frame())
+      edit_history$stack <- list()
+    } else {
+      df_subset <- full_df[, sel_vars, drop = FALSE]
+      
+      # update if there is a change
+      if (!identical(df_subset, editable_df())) {
+        editable_df(df_subset)
+        edit_history$stack <- list()
+      }
+    }
+  })
+  
   
   # render the rhandsontable for editing
   output$editable_table <- renderRHandsontable({
@@ -499,13 +504,14 @@ server <- function(input, output, session) {
   observeEvent(input$confirm_rename_col, {
     req(input$rename_col_select, input$rename_col_new)
     removeModal()
+    
     push_history()
     
     df <- editable_df()
     old_name <- input$rename_col_select
     new_name <- input$rename_col_new
     
-    # name validation
+    # Validate new name
     if (!nzchar(new_name)) {
       showModal(modalDialog(
         title = "Invalid Name",
@@ -523,18 +529,42 @@ server <- function(input, output, session) {
       return()
     }
     
-    # apply rename
-    colnames(df)[ colnames(df) == old_name ] <- new_name
+    # Rename column
+    names(df)[match(old_name, names(df))] <- new_name
     editable_df(df)
+    dataset(df)  # update full dataset
+    values$project_data$data <- df
     
-    # keep the selection vector in sync
+    # Update selected variables
     sel <- selectedVariables()
     if (old_name %in% sel) {
       sel[ sel == old_name ] <- new_name
       selectedVariables(sel)
-      }
+    }
     
+    # Force update checkboxGroupInput with all variables
+    updateCheckboxGroupInput(
+      session,
+      "variables",
+      choices = names(df),         
+      selected = sel               
+    )
+    
+    # Update analysis list
+    new_analyses <- lapply(analysis_storage(), function(a) {
+      if (identical(a$variable, old_name)) a$variable <- new_name
+      if (!is.null(a$variable2) && identical(a$variable2, old_name)) a$variable2 <- new_name
+      
+      a$label <- if (!is.null(a$variable2)) {
+        paste0(a$method, " – ", a$variable, " vs ", a$variable2)
+      } else {
+        paste0(a$method, " – ", a$variable)
+      }
+      
+      return(a)
     })
+    analysis_storage(new_analyses)
+  })
   
   
   ### c. drop rows with NA values ----
@@ -762,10 +792,13 @@ server <- function(input, output, session) {
   ### i.  save changes ----
   observeEvent(input$save_edits, {
     req(editable_df())
-    dataset(editable_df())
-    
-    selectedVariables(intersect(selectedVariables(), names(editable_df())))
-    
+    edited_df <- editable_df()
+    dataset(edited_df)
+    selectedVariables(intersect(names(edited_df), selectedVariables()))
+    # dataset(editable_df())
+    # 
+    # selectedVariables(intersect(selectedVariables(), names(editable_df())))
+    # 
     edit_history$stack <- list()
     showModal(modalDialog(
       title = "Changes Saved",
